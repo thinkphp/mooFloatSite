@@ -1,0 +1,277 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+   <meta http-equiv="Content-Type" content="text/html;charset=UTF-8" />
+   <title>float menu</title>
+   <link type="text/css" href="style.css" rel="stylesheet" />
+   <script type="text/javascript" src="moo.js"></script>
+   <script type="text/javascript">
+
+       var getPage = function(anchor,instant) {
+
+           var url = anchor.get('href'), newLoc = url.substr(1);
+
+           if($(newLoc).get('html') != '&nbsp;') {
+
+                     showPage(newLoc, instant);
+                     window.location.hash = '!'+url.substr(1);
+                     loc = newLoc;  
+
+           } else {
+
+             //make a AJAX request
+             new Request({
+                 url: newLoc+'.php',
+                 method: 'get',
+                 link: 'cancel',
+                 onRequest: function(){
+                      $('loading').fade('show'); 
+                 },
+                 onSuccess: function(html){
+                      $(newLoc).set('html',html);
+                 },
+                 onFailure: function(resp){
+                       $(newLoc).set('html',resp.responseText);
+                 },
+                 onComplete: function(){
+                      showPage(newLoc,instant);
+                      $('loading').fade('hide'); 
+                      if(newLoc == 'contact') {
+                         new Element('script',{src: 'validate.js', type: 'text/javascript'}).inject(document.head); 
+                      }
+                      loc = newLoc;
+                 }   
+             }).send();  
+           }
+
+           $('header').getElements('ul a.active').removeClass('active'); 
+           anchor.addClass('active');
+       };  
+
+       var showPage = function(id, instant) {
+
+            var offset = 0 - $('content').getChildren('div').indexOf($(id));             
+
+            if(instant) {
+
+                 $('content').setStyle('left',offset*900);
+
+            } else {
+
+               $('content').set('tween',{duration: 500,transition: Fx.Transitions.Sine.easeOut}).tween('left',offset*900); 
+            } 
+
+            if(id === 'home') {document.title = 'Home - thinkphp.ro';}
+                   else if(id === 'whoiam') {document.title = 'Who I Am - thinkphp.ro';}
+                             else if(id === 'whatido') {document.title = 'What I Do - thinkphp.ro';}
+                                    else if(id === 'contact') {document.title = 'Contact - thinkphp.ro';}
+
+
+       } 
+
+       window.addEvent('domready',function(){
+
+                  if(loc = $('container').getElement('div.content').get('id')) {
+
+                         if(loc != 'whoiam') {
+                              new Element('div',{'id':'whoiam','class':'content','html':'&nbsp;'}).inject('home','after');
+                         }
+
+                         if(loc != 'whatido') {
+                              new Element('div',{'id':'whatido','class':'content','html':'&nbsp;'}).inject('whoiam','after');
+                         }
+
+                         if(loc != 'contact') {
+                              new Element('div',{'id':'contact','class':'content','html':'&nbsp;'}).inject('whatido','after');
+                         }
+
+                         new Element('div',{'id':'loading',html: '<img src="ajax-loader.gif" alt="Loading...">Loading...'}).inject('container','bottom');
+                         $('loading').fade('hide'); 
+                  } 
+
+             	$('header').getElements('ul a').addEvent('click',function(e){
+                         if(e) {e.stop();}
+                         if(this.get('class') != 'active') {
+                                 getPage(this);
+                         } 
+                  }); 
+
+                  if(window.location.hash) {
+ 
+                         if(['home','whoiam','whatido','contact'].indexOf(window.location.hash.substr(2)) > -1) {
+
+                                  $('header').getElements('ul a').each(function(anchor){
+
+                                              if(anchor.getProperty('href') == '/'+window.location.hash.substr(2)) {
+
+                                                        getPage(anchor,true);
+                                              } 
+                                  });
+                         }
+
+                  } else {
+
+                     showPage('home',true);
+                  }
+       });//end DOMReady
+   </script>
+</head>
+<body>
+<div id="container">
+
+     <div id="header">
+             <h1>think<strong>php</strong>.ro</h1>
+                <ul>
+			<li><a href="/home" class="active" tabindex="1" accesskey="1">Home</a></li> 
+			<li><a href="/whoiam" tabindex="2" accesskey="2">WhoIAm</a></li> 
+			<li><a href="/whatido" tabindex="3" accesskey="3">WhatIDo</a></li> 
+			<li><a href="/contact" tabindex="4" accesskey="4">Contact</a></li> 
+               </ul>
+     </div><!-- end header -->
+
+     <div id="content">
+       <div class="content" id="home">
+           <div class="block">
+               <h2>Adrian Statescu's Website</h2>
+               <p>If there's any technology most associated with Web 2.0, it's AJAX. Short for Asynchronous JavaScript and XML. AJAX refers to the process of sending and receiving data from a Server without reloading an entire page.</p>
+               <p>The native tools for doing this are tied up in JavaScript object called <strong>XMLHttpRequest</strong>. Microsoft actually introduced the technology for support Outlook web access 2000. In IE, it showed up as an ActiveX object called XMLHTTP.Since then it's been implemented as a native JavaScript object called(XMLHttpRequest) for every browser except Internet Explorer, which still uses the ActiveX control.</p>
+               <p>MooTools provides three classes that make AJAX more pleasant to work with: Request, Request.HTML and Request.JSON</p>
+               <p><strong>Request</strong></p>
+               <p>What it does? The <i>Request</i> class is for standard request/response interactions when you need to send/receive data to and from the server</p>
+               <pre><code>
+               Usage:
+               new Request(options);
+               Example: 
+               var myRequest = new Request({
+                   url: 'file.php',
+                   method: 'get',
+                   onSuccess: function(responseText,responseXML) {
+                         alert(responseText);
+                   }
+               });
+               myRequest.send('username=lancia&firstname=adrian&lastname=statescu');   
+               //OR
+               myRequest.send({
+                username: 'lancia',
+                firstname: 'adrian',
+                lastname: 'statescu'
+               });
+               </code></pre> 
+               <p>When you'll use it: Making an interactive web experice will almost always include sending information about state changes to a server and requesting new information on demand. If a user can drag and drop and reorder items in a list, you'll need to send the new order to the server for storage. If a user clicks a discussion thread to expand it and see the contents of that thread, you need to fetch that content to display it if you don't deliver it when the page loads. These kinds of interactions are increasingly part of the  user's expectations.</p>
+               <p>For example, consider something as a simple as rating a product on a scale of one through five stars. Users expect to be able to click the star of their choice and see that decision immediately reflected. If the page reloaded entirely, they would feel that something was off. As users continue to expect more and more interactive experiences, our uses of AJAX will grow.</p>
+               <p>Request has several events that you can use in your code:</p>
+               <ul>
+                 <li><strong>onSuccess:</strong> This event is fired whenever the instance receives a successful response from the server. It is passed two arguments: responseText and responseXML</li>
+                 <li><strong>onFailure:</strong> This event is fired whenever the instance receives  an unsuccessful response from the server( like 404). It is passed as its arguments the instance of the request object (either XMLHttpRequest or XMLHTTP ActiveXObject in the case of IE)</li>
+                 <li><strong>onCancel:</strong> This event is fired whenever a running request is canceled. It is not passed any arguments.</li>
+                 <li><strong>onException:</strong> This event is fired whenever there is an exception when setting the headers of the XMLHttpRequest object</li>
+                 <li><strong>onRequest:</strong> This event is fired whenever the instance actually send a request. It is not passed any arguments.</li>
+                 <li><strong>onComplete:</strong> This event is fired whenever onSuccess or onFailure occur.It is passed the same arguments as onSuccess or onFailure</li>
+               </ul> 
+               <p>Request Options: The Request class has numerous options fully outlined in the MooTools documentaion</p> 
+               <p>Request.send</p>
+               <p>what it does: When you create an instance of the Request, no data is sent until you invoke its <strong>send</strong> method, which sends the request to the server.</p>
+               <pre><code>
+               Usage:
+               myRequest.send();  
+               myRequest.send(Object);
+               myRequest.send(queryString);
+               Example: 
+               var myRequest = new Request({
+                   url:'requestHandler.php',
+                   method: 'get',
+                   data: {layout: 'compact'} 
+               }); 
+               //send the default data, layout=compact
+               myRequest.send();
+               //override the data default:
+               myRquest.send({layout: 'extended'});
+               </code></pre> 
+               <p><strong>Request: .get,post,.put,.delete</strong></p>
+               <p>The Request class offers shortcut methods that work just like Request.send except that they use different "method" arguments in the request.</p>
+               <pre><code> 
+               Example:
+               //send the request as a GET
+               myRequest.get({username: 'lancia'});   
+               //send the request as a POST
+               myRequest.post({username: 'lancia'});  
+               //send the request as PUT
+               myRequest.put({username: 'lancia'});   
+               //send the request as DELETE
+               myRequest.delete({username: 'lancia'});    
+               </code></pre>
+               <p><strong>Request.cancel()</strong></p>  
+               <p>What it does: This method simply cancels a running request.</p>  
+               <p>Usage:myRequest.cancel();</p>  
+               <p><strong>Element.send</strong></p>  
+               <p>What it does: MooTools integrates a shortcut into the Element prototype to make it easy to send information based on the contents of any DOM element that contains input elements(typically a form).</p>
+               <p>Usage: $('myForm').send(url);</p>  
+               <p>Example:</p>  
+               <pre><code>
+               $('myForm').set('send',{onSuccess: function(response){
+                      alert(response);
+               }).addEvent('submit',function(e){
+                      e.stop();
+                      //uses the URL from 'action'
+                      this.send();
+               });
+               </code></pre> 
+               <p>
+               When you'll use it: Like all the Element methods that allow you to invoke a class, this just saves you keystrokes. when you use
+               this method on a form, the parameters of the form(the method and the URL) and all the input values are used just
+               as if the form had been submitted.The only difference is that the data is sent with AJAX. 
+               </p>
+               <p><strong>Using Element.set with Element.send</strong></p> 
+               //Set a default value for this element
+               //request instance
+               myElem.set('send',{method: 'post'});
+               //retrieve this element's Request instance and cancel it
+               myElem.get('send').cancel();     
+               <p><strong>Request.HTML</strong></p> 
+               <p><i>What it does:</i>This extension to the Request class automates updating the content of a DOM element with the response of an AJAX request.</p>
+               <p><i>Usage</i></p> 
+               new Request.HTML(options);
+               <pre><code>
+                Example:
+                new Request.HTML({
+                    url:'server.php',
+                    data: {userid: 212},
+                    update: $('userprofile')  
+                });
+               </code></pre> 
+               <p><i>When you'll use it:</i> A very common pattern implied by the Web 2.0 buzzword is the use of AJAX to fetch display data from the server on demand. If a user expands a section of content, rather than have that content loaded and hidden, it's fashionable to instead go get the layout that belongs there only if and when the user request it.</p> 
+               <p><strong>Element.load</strong></p>  
+               <p><strong>What it does:</strong> As with Element.send, which essentially post a form via AJAX, this method allows you to update the content of a DOM element quickly with minimal code.</p>  
+               <p><i>Usage</i></p> 
+               <p>$('myIDElement').load(url,[,data])</p> 
+               <pre><code>
+                Example:
+                $('myelement').load('page1.html');
+               </code></pre> 
+               <p><i>When you'll use it:</i> This handy shortcut allows you to acquire any element from the DOM and update its content via AJAX. It is very short and easy to read and understand, and you'll likely find yourself using it more often then typing out new Request.HTML..</p>                 
+
+
+               <p><strong>Request.JSON</strong></p> 
+               <p><i>What it does:</i>This class automates the sending and receiving of JSON information</p>
+               <p><i>Usage</i></p> 
+               new Request.JSON(options);
+               <pre><code>
+                Example:
+                //this piece of code send a data object via a GET request and alert the retrieved data.
+                var jsonRequest = new Request.JSON({
+                    url: 'tellmeage.php',
+                    onComplete: function(person){
+                         alert(person.age);
+                         alert(person.height);
+                         alert(person.weight);
+                    }  
+                }).get({firstname: 'adrian',lastname:'statescu'});
+               </code></pre> 
+               <p><i>When you'll use it:</i>As outlined in last chapter JSON is a transport languange much like XML, except that it uses native JavaScript notation. Using XML to trasport data in and out of JavaScript requires you to crowl up and down a document tree, while using JSON allows you to use the dot notation(as illustrated proviously). Despite it being the 'x' in AJAX, it's actualy increasingly rare to use XML to manage data transactions from the browser to the server</p>
+           </div><!-- end block -->
+       </div><!-- end content home -->
+     </div><!-- end div content -->
+
+</div><!-- end container -->
+</body>
+</html>
